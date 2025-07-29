@@ -27,6 +27,7 @@ export type Self = {
 };
 
 export type SelfStats = {
+  hostname: string;
   hacking: number;
   maxRam: number;
   usedRam: number;
@@ -104,6 +105,7 @@ export class Netwatch {
    */
   public getStats(): SelfStats {
     return {
+      hostname: this.self.id,
       hacking: this.self.hacking,
       maxRam: this.self.maxRam,
       usedRam: this.self.usedRam,
@@ -302,6 +304,9 @@ export class Netwatch {
     await this.scan();
 
     for (const node of this.self.nodes) {
+      this.log(`Processing node ${node.id}...`);
+
+      this.log(`Node ${node.id} - Hacking Level: ${this.self.hacking}, Required Hacking: ${node.requiredHacking}`);
       if (this.self.hacking >= node.requiredHacking) {
         await this.nuke(node.id);
       }
@@ -338,10 +343,10 @@ export class Netwatch {
    *
    * @returns {void}
    */
-  public runForeverExperimental(): void {
+  public async runForeverExperimental(): Promise<void> {
     await this.scan();
 
-    this.self.nodes.forEach(async (node) => {
+    await Promise.all(this.self.nodes.map(async (node) => {
       if (this.self.hacking >= node.requiredHacking) {
         await this.nuke(node.id);
       }
@@ -355,6 +360,6 @@ export class Netwatch {
 
         await this.hack(node.id);
       }
-    });
+    }));
   }
 }
